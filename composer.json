@@ -1,0 +1,59 @@
+{
+  "name": "horizom/core",
+  "description": "The Horizom Core package.",
+  "type": "library",
+  "license": "MIT",
+  "homepage": "https://horizom.github.io",
+  "keywords": [
+    "horizon",
+    "horizom",
+    "core",
+    "php"
+  ],
+  "support": {
+    "issues": "https://github.com/horizom/horizom/issues",
+    "source": "https://github.com/horizom/horizom"
+  },
+  "authors": [
+    {
+      "name": "Roland Edi",
+      "email": "lambirou225@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^8.0",
+    "ext-mbstring": "*",
+    "ext-openssl": "*",
+    "filp/whoops": "^2.14",
+    "http-interop/http-factory-guzzle": "^1.0",
+    "horizom/dispatcher": "^3.0",
+    "horizom/http": "^3.0",
+    "horizom/routing": "^3.0",
+    "illuminate/collections": "^8.0",
+    "illuminate/contracts": "^8.0",
+    "illuminate/support": "^8.0",
+    "illuminate/view": "^8.0",
+    "middlewares/utils": "^3.2",
+    "nyholm/psr7": "^1.5",
+    "php-di/invoker": "^2.1",
+    "php-di/php-di": "^6.0",
+    "php-http/message-factory": "^1.0",
+    "psr/container": "^1.0",
+    "psr/http-factory": "^1.0",
+    "psr/http-message": "^1.0",
+    "psr/http-server-handler": "^1.0"
+  },
+  "autoload": {
+    "files": [
+      "helpers.php"
+    ],
+    "psr-4": {
+      "Horizom\\Core\\": ""
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
