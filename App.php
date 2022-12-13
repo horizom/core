@@ -37,7 +37,7 @@ class App
 
         'app.locale' => 'en_US',
 
-        'app.debug' => true,
+        'app.prety_debug' => true,
     ];
 
     /**
@@ -212,7 +212,7 @@ class App
     {
         $request = self::$container->get(\Horizom\Http\Request::class);
 
-        if (config('app.debug') === true) {
+        if (config('app.pretty_debug') === true) {
             $accepts = $request->getHeader('Accept');
             $whoops = new \Whoops\Run();
 
