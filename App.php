@@ -37,7 +37,7 @@ class App
 
         'app.locale' => 'en_US',
 
-        'app.prety_debug' => true,
+        'app.pretty_debug' => true,
     ];
 
     /**
@@ -101,7 +101,7 @@ class App
 
     /**
      * Retourne l'instance de la class
-     * 
+     *
      * @return Self
      */
     public static function getInstance()
@@ -165,10 +165,10 @@ class App
 
     /**
      * Set your application base path
-     * 
-     * If you want to run your Slim Application from a sub-directory 
+     *
+     * If you want to run your Slim Application from a sub-directory
      * in your Server’s Root instead of creating a Virtual Host
-     * 
+     *
      * @param string $path Path to your Application
      */
     public function setBasePath(string $path = ''): self
@@ -195,7 +195,7 @@ class App
 
     /**
      * Register a new middleware in stack
-     * 
+     *
      * @param MiddlewareInterface|string|callable $middleware
      * @return self
      */
@@ -226,7 +226,7 @@ class App
             }
 
             $this->add(new \Middlewares\Whoops($whoops));
-        } else if ($this->errorHandler !== null) {
+        } elseif ($this->errorHandler !== null) {
             $this->add(new ErrorHandlingMiddleware($this->errorHandler));
         }
 
