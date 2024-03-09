@@ -8,7 +8,7 @@ class VersionException extends \Exception
     {
         parent::__construct(
             "This version of Horizom requires at least PHP 8.0 but you are currently running PHP " . explode('-', PHP_VERSION)[0] . ". Please update your PHP version.", 
-            $code, 
+            $code,
             $previous
         );
     }

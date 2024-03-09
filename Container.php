@@ -3,6 +3,7 @@
 namespace Horizom\Core;
 
 use DI\Container as DIContainer;
+use Illuminate\Support\Arr;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -22,4 +23,80 @@ use Psr\Container\ContainerInterface;
  */
 class Container extends DIContainer implements ContainerInterface
 {
+    /**
+     * @var array<string, bool>
+     */
+    private $loadedProviders = [];
+
+    /**
+     * @var array<int, ServiceProvider>
+     */
+    private $serviceProviders = [];
+
+    /**
+     * Register a service provider with the application.
+     *
+     * @param ServiceProvider $provider
+     */
+    public function register($provider, $force = false)
+    {
+        if (($registered = $this->getProvider($provider)) && !$force) {
+            return $registered;
+        }
+
+        $provider->register();
+        $this->markAsRegistered($provider);
+
+        return $provider;
+    }
+
+    /**
+     * Boots up the application calling the `boot` method of each registered service provider.
+     *
+     * @see \Horizom\Core\ServiceProvider::boot()
+     */
+    public function boot(): void
+    {
+        if (!empty($this->serviceProviders)) {
+            foreach ($this->serviceProviders as $provider) {
+                $provider->boot();
+            }
+        }
+    }
+
+    /**
+     * Get the registered service provider instance if it exists.
+     *
+     * @param  ServiceProvider|string  $provider
+     * @return ServiceProvider|null
+     */
+    public function getProvider($provider)
+    {
+        return array_values($this->getProviders($provider))[0] ?? null;
+    }
+
+    /**
+     * Get the registered service provider instances if any exist.
+     *
+     * @param  ServiceProvider|string  $provider
+     * @return array
+     */
+    public function getProviders($provider)
+    {
+        $name = is_string($provider) ? $provider : get_class($provider);
+
+        return Arr::where($this->serviceProviders, fn($value) => $value instanceof $name);
+    }
+
+    /**
+     * Mark the given provider as registered.
+     *
+     * @param  ServiceProvider  $provider
+     * @return void
+     */
+    protected function markAsRegistered($provider)
+    {
+        $this->serviceProviders[] = $provider;
+        $this->loadedProviders[get_class($provider)] = true;
+    }
 }

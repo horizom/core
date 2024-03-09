@@ -2,43 +2,26 @@
 
 namespace Horizom\Core;
 
-use Horizom\Core\Middlewares\ErrorHandlingMiddleware;
+use DI\ContainerBuilder;
 use Horizom\Dispatcher\Dispatcher;
 use Horizom\Dispatcher\MiddlewareResolver;
 use Horizom\Http\Request;
-use Horizom\Routing\RouteCollector;
-use Horizom\Routing\RouteCollectorFactory;
+use Horizom\Routing\Router;
+use Horizom\Routing\RouterFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\MiddlewareInterface;
 
 class App
 {
     /**
-     * @const string Horizom Framework Version
+     * @var self
      */
-    protected const VERSION = '3.1.0';
+    private static $instance;
 
     /**
-     * @var array
+     * @const string Horizom Framework Version
      */
-    protected static $settings = [
-        'app.name' => 'Horizom',
-
-        'app.env' => 'development',
-
-        'app.base_path' => '',
-
-        'app.base_url' => 'http://localhost:8000',
-
-        'app.asset_url' => null,
-
-        'app.timezone' => 'UTC',
-
-        'app.locale' => 'en_US',
-
-        'app.pretty_debug' => true,
-    ];
+    protected const VERSION = '4.0.0';
 
     /**
      * @var string
@@ -51,66 +34,60 @@ class App
     protected $basePath;
 
     /**
-     * @var Container
+     * @var \Horizom\Core\Container
      */
-    private static $container;
+    private $container;
 
     /**
-     * @var Dispatcher
+     * @var \Horizom\Dispatcher\Dispatcher
      */
     private $dispatcher;
 
     /**
-     * @var ErrorHandlerInterface
-     */
-    private $errorHandler;
-
-    /**
-     * @var RouteCollector
+     * @var \Horizom\Routing\Router
      */
     public $router;
 
     /**
-     * @var App
-     */
-    private static $_instance;
-
-    /**
      * Create new application
+     *
+     * @param string $basePath
+     * @param \Psr\Container\ContainerInterface|null $container
      */
     public function __construct(string $basePath = '', ContainerInterface $container = null)
     {
-        define("HORIZOM_VERSION", self::VERSION);
+        // Load environment variables
+        \Dotenv\Dotenv::createImmutable(HORIZOM_ROOT)->safeLoad();
 
+        // Set base path
         $this->basePath = $basePath;
 
         if ($container === null) {
-            $container = new Container();
-            $container->set("version", $this->version());
-            $container->set(Request::class, Request::create());
+            $containerBuilder = new ContainerBuilder(Container::class);
+            $container = $containerBuilder->useAutowiring(true)->build();
         }
 
-        $resolver = new MiddlewareResolver($container);
+        $this->container = $container;
+        $this->dispatcher = new Dispatcher([], new MiddlewareResolver($container));
+        $this->router = (new RouterFactory)->create($container);
 
-        $this->dispatcher = new Dispatcher([], $resolver);
-        $this->router = (new RouteCollectorFactory())->create($container);
+        $this->instance(Config::class, new Config());
 
-        self::$container = $container;
-        self::$_instance = $this;
+        self::$instance = $this;
     }
 
     /**
-     * Retourne l'instance de la class
+     * Return the application instance
      *
-     * @return Self
+     * @return static
      */
     public static function getInstance()
     {
-        if (is_null(self::$_instance)) {
-            self::$_instance = new Self();
+        if (is_null(self::$instance)) {
+            self::$instance = new self();
         }
 
-        return self::$_instance;
+        return self::$instance;
     }
 
     /**
@@ -120,47 +97,7 @@ class App
      */
     public function version()
     {
-        return 'Horizom (' . self::VERSION . ') PHP (' . PHP_VERSION . ')';
-    }
-
-    /**
-     * Set or Get Configuration Values into the application.
-     */
-    public static function config(array $config = null)
-    {
-        if ($config !== null) {
-            self::$settings = array_merge(self::$settings, $config);
-            return null;
-        }
-
-        return self::$settings;
-    }
-
-    /**
-     * Dependency Injection Container.
-     */
-    public function container(): Container
-    {
-        return self::$container;
-    }
-
-    /**
-     * Finds an entry of the container by its identifier and returns it.
-     */
-    public function get(string $id)
-    {
-        return self::$container->get($id);
-    }
-
-    /**
-     * Load a configuration file into the application.
-     */
-    public function configure(string $name): self
-    {
-        $config = require HORIZOM_ROOT . '/config/' . $name . '.php';
-        $this->config($config);
-
-        return $this;
+        return self::VERSION;
     }
 
     /**
@@ -178,25 +115,9 @@ class App
     }
 
     /**
-     * Set error handler middleware
-     * 
-     * @param ErrorHandlerInterface|string $errorHandler
-     */
-    public function setErrorHandler($errorHandler): self
-    {
-        if (is_string($errorHandler)) {
-            $this->errorHandler = new $errorHandler();
-        } else {
-            $this->errorHandler = $errorHandler;
-        }
-
-        return $this;
-    }
-
-    /**
      * Register a new middleware in stack
      *
-     * @param MiddlewareInterface|string|callable $middleware
+     * @param \Psr\Http\Server\MiddlewareInterface|\Psr\Http\Server\RequestHandlerInterface|string|callable $middleware
      * @return self
      */
     public function add($middleware): self
@@ -206,37 +127,213 @@ class App
     }
 
     /**
-     * Run The Application
+     * Build an entry of the container by its name.
+     * This method behave like get() except resolves the entry again every time.
+     *
+     * @template T
+     * @param class-string<T> $name
+     * @param array $parameters
+     * @return T
      */
-    public function run()
+    public function make(string $name, array $parameters = [])
     {
-        $request = self::$container->get(\Horizom\Http\Request::class);
-
-        if (config('app.pretty_debug') === true) {
-            $accepts = $request->getHeader('Accept');
-            $whoops = new \Whoops\Run();
-
-            if (
-                !empty($accepts) && $accepts[0] === 'application/json' ||
-                \Whoops\Util\Misc::isAjaxRequest()
-            ) {
-                $whoops->pushHandler(new \Whoops\Handler\JsonResponseHandler());
-            } else {
-                $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler());
-            }
-
-            $this->add(new \Middlewares\Whoops($whoops));
-        } elseif ($this->errorHandler !== null) {
-            $this->add(new ErrorHandlingMiddleware($this->errorHandler));
-        }
-
-        $this->add($this->router->getRouter());
-        $response = $this->dispatcher->dispatch($request);
-
-        $this->emit($response);
+        return $this->container->make($name, $parameters);
     }
 
-    private function emit(ResponseInterface $response)
+    /**
+     * Register a shared binding in the container.
+     *
+     * @param string $abstract
+     * @param callable $concrete
+     * @return mixed
+     */
+    public function singleton(string $abstract, $concrete = null)
+    {
+        $this->set($abstract, $concrete ?? $abstract);
+    }
+
+    /**
+     * Define an object or a value in the container.
+     *
+     * @param string $abstract
+     * @param mixed $concrete
+     * @return mixed
+     */
+    public function instance(string $abstract, $instance)
+    {
+        return $this->set($abstract, $instance);
+    }
+
+    /**
+     * Define an object in the container.
+     *
+     * @param string $abstract
+     * @param mixed $concrete
+     */
+    public function bind(string $abstract, $concrete)
+    {
+        $this->set($abstract, $concrete);
+    }
+
+    /**
+     * Check if the container can provide an entry for the given id.
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function has(string $id): bool
+    {
+        return $this->container->has($id);
+    }
+
+    /**
+     * Extend an entry of the container.
+     *
+     * @param string $id
+     * @param callable $callback
+     * @return mixed
+     */
+    public function extend(string $id, callable $callback)
+    {
+        $old = $this->container->get($id);
+        return $this->container->set($id, fn() => $callback($old));
+    }
+
+    /**
+     * Define an object or a value in the container.
+     *
+     * @param string $name
+     * @param mixed $value
+     */
+    public function set($name, $value)
+    {
+        return $this->container->set($name, $value);
+    }
+
+    /**
+     * Get an entry of the container by its id.
+     *
+     * @template T
+     * @param class-string<T> $id
+     * @return T
+     */
+    public function get(string $id)
+    {
+        return $this->container->get($id);
+    }
+
+    /**
+     * Resolve a service provider instance from the class name.
+     *
+     * @param string $provider
+     * @return \Horizom\Core\ServiceProvider
+     */
+    public function resolveProvider($provider)
+    {
+        return new $provider($this);
+    }
+
+    /**
+     * Register a service provider.
+     *
+     * @param \Horizom\Core\ServiceProvider|string $provider
+     */
+    public function register($provider)
+    {
+        if (is_string($provider)) {
+            $provider = $this->resolveProvider($provider);
+        }
+
+        return $this->container->register($provider);
+    }
+
+    /**
+     * Boots up the application calling the `boot` method of each registered service provider.
+     *
+     * @see \Horizom\Core\ServiceProvider::boot()
+     */
+    public function boot()
+    {
+        $this->container->boot();
+    }
+
+    /**
+     * Set or Get Configuration Values into the application.
+     *
+     * @param array|null $items
+     * @return array|null
+     */
+    public function config(array $items = null)
+    {
+        if (is_null($items)) {
+            return $this->get(Config::class)->all();
+        }
+
+        $this->updateConfig($items);
+    }
+
+    /**
+     * Load a configuration file into the application.
+     */
+    public function configure(string $name): self
+    {
+        $this->updateConfig(
+            (array) require base_path("config/{$name}.php")
+        );
+
+        return $this;
+    }
+
+    public function updateConfig(array $items)
+    {
+        $config = $this->get(Config::class);
+        $items = array_merge($config->all(), $items);
+
+        $this->instance(Config::class, Config::make($items));
+    }
+
+    /**
+     * Run The Application
+     *
+     * @param \Horizom\Http\Request $request
+     */
+    public function run(Request $request)
+    {
+        $this->instance(Request::class, $request);
+        $this->instance(Router::class, $this->router);
+
+        $this->registerServiceProvidersAndBoot();
+
+        // Add the router middleware
+        $this->add($this->router->getRouter());
+
+        // Send the response to the browser
+        $this->emit(
+            $this->dispatcher->dispatch($request)
+        );
+    }
+
+    /**
+     * Register service providers and boot them if the application is already booted.
+     *
+     * @return void
+     */
+    protected function registerServiceProvidersAndBoot()
+    {
+        foreach (config('providers') as $provider) {
+            $this->register($provider);
+        }
+
+        $this->boot();
+    }
+
+    /**
+     * Send the response to the browser.
+     *
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @return void
+     */
+    public function emit(ResponseInterface $response)
     {
         $http_line = sprintf(
             'HTTP/%s %s %s',

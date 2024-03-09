@@ -24,28 +24,28 @@
     "php": "^8.0",
     "ext-mbstring": "*",
     "ext-openssl": "*",
-    "filp/whoops": "^2.14",
     "http-interop/http-factory-guzzle": "^1.0",
     "horizom/dispatcher": "^3.0",
-    "horizom/http": "^3.0",
-    "horizom/routing": "^3.0",
+    "illuminate/config": "^8.0",
     "illuminate/collections": "^8.0",
     "illuminate/contracts": "^8.0",
+    "illuminate/container": "^8.0",
     "illuminate/support": "^8.0",
     "illuminate/view": "^8.0",
     "middlewares/utils": "^3.2",
-    "middlewares/whoops": "^2.0",
     "nyholm/psr7": "^1.5",
     "php-di/invoker": "^2.1",
     "php-di/php-di": "^6.0",
-    "php-http/message-factory": "^1.0",
     "psr/container": "^1.0",
     "psr/http-factory": "^1.0",
     "psr/http-message": "^1.0",
-    "psr/http-server-handler": "^1.0"
+    "psr/http-server-handler": "^1.0",
+    "spatie/ignition": "^1.12",
+    "vlucas/phpdotenv": "^5.3"
   },
   "require-dev": {
-    "digitalnature/php-ref": "^1.3"
+    "phpunit/phpunit": "^9.0",
+    "symfony/var-dumper": "^6.4"
   },
   "autoload": {
     "files": [

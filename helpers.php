@@ -1,17 +1,18 @@
 <?php
 
-use Horizom\Core\App;
-use Horizom\Core\View;
+use Horizom\Core\Facades\Response;
+use Horizom\Core\Facades\View;
 use Illuminate\Support\Facades\Hash;
-use Nyholm\Psr7\Factory\Psr17Factory;
 
 if (!function_exists('app')) {
     /**
-     * Application
+     * Application instance
+     *
+     * @return \Horizom\Core\App
      */
     function app()
     {
-        return App::getInstance();
+        return \Horizom\Core\App::getInstance();
     }
 }
 
@@ -21,8 +22,7 @@ if (!function_exists('config')) {
      */
     function config(string $key, $default = null)
     {
-        $configs = App::config();
-        return isset($configs[$key]) ? $configs[$key] : $default;
+        return \Horizom\Core\Facades\Config::get($key, $default);
     }
 }
 
@@ -32,8 +32,8 @@ if (!function_exists('url')) {
      */
     function url(string $path = null)
     {
-        $base_url = trim(HORIZOM_BASE_URL, '/');
-        return ($path) ? $base_url . '/' . trim($path, '/') : $base_url;
+        $baseUrl = defined('HORIZOM_BASE_URL') ? trim(HORIZOM_BASE_URL, '/') : '';
+        return ($path) ? $baseUrl . '/' . trim($path, '/') : $baseUrl;
     }
 }
 
@@ -43,8 +43,8 @@ if (!function_exists('asset')) {
      */
     function asset(string $path = null)
     {
-        $base_url = trim(HORIZOM_BASE_URL, '/');
-        return ($path) ? $base_url . '/' . $path : $base_url;
+        $baseUrl = defined('HORIZOM_BASE_URL') ? trim(HORIZOM_BASE_URL, '/') : '';
+        return ($path) ? $baseUrl . '/' . $path : $baseUrl;
     }
 }
 
@@ -54,11 +54,8 @@ if (!function_exists('view')) {
      */
     function view(string $name, array $data = [], $contentType = 'text/html')
     {
-        $factory = new Psr17Factory();
-        $content = (new View())->make($name, $data)->render();
-        $body = $factory->createStream($content);
-
-        return $factory->createResponse()->withHeader('Content-type', $contentType)->withBody($body);
+        $content = View::make($name, $data)->render();
+        return Response::withHeader('Content-type', $contentType)->getBody()->write($content);
     }
 }
 
@@ -72,13 +69,57 @@ if (!function_exists('bcrypt')) {
     }
 }
 
-if (!function_exists('debug')) {
+if (!function_exists('base_path')) {
     /**
-     * var_dump & die
+     * Get base path helper
+     *
+     * @param string $path
+     * @return string
      */
-    function debug($var)
+    function base_path(string $path = '')
     {
-        var_dump($var);
-        die;
+        return $path ? HORIZOM_ROOT . '/' . $path : HORIZOM_ROOT;
+    }
+}
+
+if (!function_exists('storage_path')) {
+    /**
+     * Get the path to the storage folder
+     *
+     * @param string $path
+     * @return string
+     */
+    function storage_path(string $path = '')
+    {
+        $base = base_path(path: 'storage');
+        return $path ? $base . '/' . $path : $base;
+    }
+}
+
+if (!function_exists('public_path')) {
+    /**
+     * Get the path to the public folder
+     *
+     * @param string $path
+     * @return string
+     */
+    function public_path(string $path = '')
+    {
+        $base = base_path('public');
+        return $path ? $base . '/' . $path : $base;
+    }
+}
+
+if (!function_exists('resources_path')) {
+    /**
+     * Get the path to the resources folder
+     *
+     * @param string $path
+     * @return string
+     */
+    function resources_path(string $path = '')
+    {
+        $base = HORIZOM_ROOT . '/resources';
+        return $path ? $base . '/' . $path : $base;
     }
 }

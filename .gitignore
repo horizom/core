@@ -1,0 +1,10 @@
+.DS_Store
+
+/.vscode/*
+/vendor
+/tests
+/monorepo-builder.php
+
+.env
+.env.backup
+npm-debug.log
