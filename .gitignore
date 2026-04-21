@@ -3,10 +3,12 @@
 /.vscode/*
 /vendor
 /monorepo-builder.php
+/.phpstan-cache
 
 .env
 .env.backup
 npm-debug.log
 
+.phpunit.result.cache
 composer.phar
 composer.lock

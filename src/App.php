@@ -10,7 +10,6 @@ use Horizom\Dispatcher\MiddlewareResolver;
 use Horizom\Http\Request;
 use Horizom\Routing\Router;
 use Horizom\Routing\RouterFactory;
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class App
@@ -54,9 +53,9 @@ class App
      * Create new application
      *
      * @param string $basePath
-     * @param \Psr\Container\ContainerInterface|null $container
+     * @param Container|null $container
      */
-    public function __construct(string $basePath = '', ContainerInterface $container = null)
+    public function __construct(string $basePath = '', Container $container = null)
     {
         // Load environment variables
         \Dotenv\Dotenv::createImmutable(HORIZOM_ROOT)->safeLoad();
@@ -66,7 +65,9 @@ class App
 
         if ($container === null) {
             $containerBuilder = new ContainerBuilder(Container::class);
-            $container = $containerBuilder->useAutowiring(true)->build();
+            $built = $containerBuilder->useAutowiring(true)->build();
+            assert($built instanceof Container);
+            $container = $built;
         }
 
         $this->container = $container;
@@ -83,13 +84,15 @@ class App
      *
      * @return static
      */
-    public static function getInstance()
+    public static function getInstance(): static
     {
         if (is_null(self::$instance)) {
             self::$instance = new self();
         }
 
-        return self::$instance;
+        /** @var static $instance */
+        $instance = self::$instance;
+        return $instance;
     }
 
     /**
@@ -119,10 +122,10 @@ class App
     /**
      * Register a new middleware in stack
      *
-     * @param \Psr\Http\Server\MiddlewareInterface|\Psr\Http\Server\RequestHandlerInterface|string|callable $middleware
+     * @param \Psr\Http\Server\MiddlewareInterface|\Psr\Http\Server\RequestHandlerInterface|string $middleware
      * @return self
      */
-    public function add($middleware): self
+    public function add(\Psr\Http\Server\MiddlewareInterface|\Psr\Http\Server\RequestHandlerInterface|string $middleware): self
     {
         $this->dispatcher->add($middleware);
         return $this;
@@ -134,7 +137,7 @@ class App
      *
      * @template T
      * @param class-string<T> $name
-     * @param array $parameters
+     * @param array<string, mixed> $parameters
      * @return T
      */
     public function make(string $name, array $parameters = [])
@@ -147,7 +150,6 @@ class App
      *
      * @param string $abstract
      * @param callable $concrete
-     * @return mixed
      */
     public function singleton(string $abstract, $concrete = null): void
     {
@@ -158,10 +160,9 @@ class App
      * Define an object or a value in the container.
      *
      * @param string $abstract
-     * @param mixed $concrete
-     * @return mixed
+     * @param mixed $instance
      */
-    public function instance(string $abstract, $instance): void
+    public function instance(string $abstract, mixed $instance): void
     {
         $this->set($abstract, $instance);
     }
@@ -172,7 +173,7 @@ class App
      * @param string $abstract
      * @param mixed $concrete
      */
-    public function bind(string $abstract, $concrete): void
+    public function bind(string $abstract, mixed $concrete): void
     {
         $this->set($abstract, $concrete);
     }
@@ -193,7 +194,6 @@ class App
      *
      * @param string $id
      * @param callable $callback
-     * @return mixed
      */
     public function extend(string $id, callable $callback): void
     {
@@ -286,6 +286,9 @@ class App
         return $this;
     }
 
+    /**
+     * @param array<string, mixed> $items
+     */
     public function updateConfig(array $items): void
     {
         $config = $this->get(Config::class);

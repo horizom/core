@@ -22,7 +22,7 @@ if (!function_exists('config')) {
     /**
      * Accessing Configuration Values
      */
-    function config(string $key, $default = null)
+    function config(string $key, mixed $default = null): mixed
     {
         return \Horizom\Core\Facades\Config::get($key, $default);
     }
@@ -32,7 +32,7 @@ if (!function_exists('url')) {
     /**
      * Generate a URL.
      */
-    function url(string $path = null)
+    function url(string $path = null): string
     {
         $baseUrl = defined('HORIZOM_BASE_URL') ? trim(HORIZOM_BASE_URL, '/') : '';
         return ($path) ? $baseUrl . '/' . trim($path, '/') : $baseUrl;
@@ -43,7 +43,7 @@ if (!function_exists('asset')) {
     /**
      * Generate a URL for an asset using the current scheme of the request (HTTP or HTTPS).
      */
-    function asset(string $path = null)
+    function asset(string $path = null): string
     {
         $baseUrl = defined('HORIZOM_BASE_URL') ? trim(HORIZOM_BASE_URL, '/') : '';
         return ($path) ? $baseUrl . '/' . $path : $baseUrl;
@@ -53,8 +53,10 @@ if (!function_exists('asset')) {
 if (!function_exists('view')) {
     /**
      * Return a view as the response's content
+     *
+     * @param array<string, mixed> $data
      */
-    function view(string $name, array $data = [], $contentType = 'text/html')
+    function view(string $name, array $data = [], string $contentType = 'text/html'): int
     {
         $content = View::make($name, $data)->render();
         return Response::withHeader('Content-type', $contentType)->getBody()->write($content);
@@ -65,7 +67,7 @@ if (!function_exists('bcrypt')) {
     /**
      * Hashes the given value using Bcrypt.
      */
-    function bcrypt(string $value)
+    function bcrypt(string $value): string
     {
         return Hash::make($value);
     }
@@ -78,7 +80,7 @@ if (!function_exists('base_path')) {
      * @param string $path
      * @return string
      */
-    function base_path(string $path = '')
+    function base_path(string $path = ''): string
     {
         return $path ? HORIZOM_ROOT . '/' . $path : HORIZOM_ROOT;
     }
@@ -91,7 +93,7 @@ if (!function_exists('storage_path')) {
      * @param string $path
      * @return string
      */
-    function storage_path(string $path = '')
+    function storage_path(string $path = ''): string
     {
         $base = base_path(path: 'storage');
         return $path ? $base . '/' . $path : $base;
@@ -105,7 +107,7 @@ if (!function_exists('public_path')) {
      * @param string $path
      * @return string
      */
-    function public_path(string $path = '')
+    function public_path(string $path = ''): string
     {
         $base = base_path('public');
         return $path ? $base . '/' . $path : $base;
@@ -119,7 +121,7 @@ if (!function_exists('resources_path')) {
      * @param string $path
      * @return string
      */
-    function resources_path(string $path = '')
+    function resources_path(string $path = ''): string
     {
         $base = HORIZOM_ROOT . '/resources';
         return $path ? $base . '/' . $path : $base;

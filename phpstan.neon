@@ -1,0 +1,18 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    bootstrapFiles:
+        - .phpstan-bootstrap.php
+    tmpDir: .phpstan-cache
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        # Illuminate's ViewServiceProvider constructor expects Foundation\Application;
+        # we pass a Container which satisfies the interface at runtime.
+        - '#Parameter \#1 \$app of class Illuminate\\View\\ViewServiceProvider constructor expects#'
+        # Illuminate\Support\Facades\Facade::setFacadeApplication expects Foundation\Application
+        - '#Parameter \#1 \$app of static method Illuminate\\Support\\Facades\\Facade::setFacadeApplication\(\) expects#'
+        # Facade::resolveFacadeInstance — dynamic class-string resolution.
+        - '#Parameter \#1 \$id of method Horizom\\Core\\App::get\(\) expects class-string#'
+        - '#Unable to resolve the template type T in call to method Horizom\\Core\\App::get\(\)#'

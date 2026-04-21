@@ -6,7 +6,7 @@ namespace Horizom\Core\Facades;
 
 /**
  * @method static mixed get(string $key, mixed $default = null)
- * @method static array all()
+ * @method static array<string, mixed> all()
  * @method static bool has($key)
  * @method static void push($key, $value)
  * @method static void put(mixed $key, mixed $value = null)

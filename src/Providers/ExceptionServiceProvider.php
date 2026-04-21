@@ -14,20 +14,16 @@ class ExceptionServiceProvider extends ServiceProvider
 {
     /**
      * Register the service provider.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
         //
     }
 
     /**
      * Binds and sets up implementations at boot time.
-     *
-     * @return void The method will not return any value.
      */
-    public function boot()
+    public function boot(): void
     {
         $request = $this->app->get(Request::class);
         $shouldDisplayException = (bool) env('APP_DISPLAY_EXCEPTION', true);
@@ -44,7 +40,7 @@ class ExceptionServiceProvider extends ServiceProvider
         }
     }
 
-    protected function registerMiddleware()
+    protected function registerMiddleware(): void
     {
         $exceptionHandler = $this->app->get(ExceptionHandler::class);
         $this->app->add(new ExceptionHandlingMiddleware($exceptionHandler));
@@ -52,24 +48,18 @@ class ExceptionServiceProvider extends ServiceProvider
 
     /**
      * Register exception handler.
-     *
-     * @param bool $shouldDisplayException
-     *
-     * @return void
      */
-    protected function registerExceptionHandler(bool $shouldDisplayException)
+    protected function registerExceptionHandler(bool $shouldDisplayException): void
     {
         Ignition::make()->shouldDisplayException($shouldDisplayException)->register();
     }
 
-    public function registerJsonExceptionHandler(bool $shouldDisplayException)
+    public function registerJsonExceptionHandler(bool $shouldDisplayException): void
     {
         error_reporting(-1);
 
-        /** @phpstan-ignore-next-line  */
+        /** @phpstan-ignore argument.type */
         set_error_handler([$this, 'renderJsonError']);
-
-        /** @phpstan-ignore-next-line  */
         set_exception_handler([$this, 'handleJsonException']);
     }
 
@@ -95,11 +85,8 @@ class ExceptionServiceProvider extends ServiceProvider
 
     /**
      * Handle an exception and generate a JSON response.
-     *
-     * @param \Throwable $throwable
-     * @return void
      */
-    public function handleJsonException(\Throwable $throwable)
+    public function handleJsonException(\Throwable $throwable): void
     {
         $report = $this->createJsonReport($throwable);
         $this->renderJsonReport($report);
@@ -108,10 +95,9 @@ class ExceptionServiceProvider extends ServiceProvider
     /**
      * Create a JSON report.
      *
-     * @param \Throwable $exception
-     * @return array
+     * @return array<string, mixed>
      */
-    public function createJsonReport(\Throwable $exception)
+    public function createJsonReport(\Throwable $exception): array
     {
         return [
             'code' => $exception->getCode(),
@@ -125,13 +111,13 @@ class ExceptionServiceProvider extends ServiceProvider
     /**
      * Render a JSON report.
      *
-     * @param array $report
-     * @return void
+     * @param array<string, mixed> $report
      */
-    public function renderJsonReport(array $report)
+    public function renderJsonReport(array $report): void
     {
         $response = $this->app->make(\Horizom\Http\Response::class);
-        $response->getBody()->write(json_encode($report));
+        $encoded = json_encode($report);
+        $response->getBody()->write($encoded !== false ? $encoded : '{}');
 
         $this->app->emit(
             $response->withStatus(500)->withHeader('Content-Type', 'application/json')

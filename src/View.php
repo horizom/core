@@ -6,7 +6,6 @@ namespace Horizom\Core;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\Container as ContainerInterface;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory as FactoryContract;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
@@ -18,7 +17,7 @@ use Illuminate\View\ViewServiceProvider;
 class View implements FactoryContract
 {
     /**
-     * @var Application
+     * @var ContainerInterface
      */
     protected $container;
 
@@ -32,6 +31,9 @@ class View implements FactoryContract
      */
     private $compiler;
 
+    /**
+     * @param array<int, string> $viewPaths
+     */
     public function __construct(array $viewPaths, string $cachePath, ContainerInterface $container = null)
     {
         $this->container = $container ?: new Container;
@@ -80,35 +82,29 @@ class View implements FactoryContract
     }
 
     /**
-     * Register a handler for custom directives.
-     *
      * @param string $name
      * @param callable $handler
      */
-    public function directive(string $name, callable $handler)
+    public function directive(string $name, callable $handler): void
     {
         $this->compiler->directive($name, $handler);
     }
 
     /**
-     * Register a class-based component alias directive.
-     *
      * @param string $class
      * @param string|null $alias
      * @param string $prefix
      */
-    public function component(string $class, string $alias = null, string $prefix = '')
+    public function component(string $class, string $alias = null, string $prefix = ''): void
     {
         $this->compiler->component($class, $alias, $prefix);
     }
 
     /**
-     * Register an "if" statement directive.
-     *
      * @param string $name
      * @param callable $callback
      */
-    public function if(string $name, callable $callback)
+    public function if(string $name, callable $callback): void
     {
         $this->compiler->if($name, $callback);
     }
@@ -130,9 +126,9 @@ class View implements FactoryContract
      * @param string $path
      * @param array<string, mixed> $data
      * @param array<string, mixed> $mergeData
-     * @return string
+     * @return \Illuminate\Contracts\View\View
      */
-    public function file($path, $data = [], $mergeData = [])
+    public function file($path, $data = [], $mergeData = []): \Illuminate\Contracts\View\View
     {
         return $this->factory->file($path, $data, $mergeData);
     }
@@ -152,23 +148,25 @@ class View implements FactoryContract
     /**
      * Register a view composer event
      *
-     * @param array<string, string> $views
-     * @param callable|string $callback
+     * @param array<int, string>|string $views
+     * @param \Closure|string $callback
+     * @return array<int, mixed>
      */
     public function composer($views, $callback): array
     {
-        return $this->factory->composer($views, $callback);
+        return $this->factory->composer($views, $callback instanceof \Closure || is_string($callback) ? $callback : \Closure::fromCallable($callback));
     }
 
     /**
      * Register a view creator event.
      *
-     * @param array<string, string> $views
-     * @param callable|string $callback
+     * @param array<int, string>|string $views
+     * @param \Closure|string $callback
+     * @return array<int, mixed>
      */
     public function creator($views, $callback): array
     {
-        return $this->factory->creator($views, $callback);
+        return $this->factory->creator($views, $callback instanceof \Closure || is_string($callback) ? $callback : \Closure::fromCallable($callback));
     }
 
     /**
@@ -187,6 +185,9 @@ class View implements FactoryContract
 
     /**
      * Replace the namespace hints for the given namespace.
+     *
+     * @param string $namespace
+     * @param array<int, string>|string $hints
      */
     public function replaceNamespace($namespace, $hints): self
     {
@@ -195,12 +196,18 @@ class View implements FactoryContract
         return $this;
     }
 
-    public function __call(string $method, array $params)
+    /**
+     * @param array<int, mixed> $params
+     */
+    public function __call(string $method, array $params): mixed
     {
-        return call_user_func_array([$this->factory, $method], $params);
+        return $this->factory->$method(...$params);
     }
 
-    protected function setupContainer(array $viewPaths, string $cachePath)
+    /**
+     * @param array<int, string> $viewPaths
+     */
+    protected function setupContainer(array $viewPaths, string $cachePath): void
     {
         $this->container->bindIf('files', fn() => new Filesystem(), true);
         $this->container->bindIf('events', fn() => new Dispatcher(), true);

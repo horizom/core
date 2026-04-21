@@ -10,20 +10,16 @@ class ConfigServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
         //
     }
 
     /**
      * Binds and sets up implementations at boot time.
-     *
-     * @return void The method will not return any value.
      */
-    public function boot()
+    public function boot(): void
     {
         //
     }
