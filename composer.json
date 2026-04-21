@@ -11,13 +11,13 @@
     "php"
   ],
   "support": {
-    "issues": "https://github.com/horizom/horizom/issues",
-    "source": "https://github.com/horizom/horizom"
+    "issues": "https://github.com/horizom/core/issues",
+    "source": "https://github.com/horizom/core"
   },
   "authors": [
     {
       "name": "Roland Edi",
-      "email": "lambirou225@gmail.com"
+      "email": "rolandedi@codivoire.com"
     }
   ],
   "require": {
@@ -25,7 +25,9 @@
     "ext-mbstring": "*",
     "ext-openssl": "*",
     "http-interop/http-factory-guzzle": "^1.0",
-    "horizom/dispatcher": "^3.0",
+    "horizom/dispatcher": "^5.2",
+    "horizom/http": "^5.2",
+    "horizom/routing": "^5.2",
     "illuminate/config": "^8.0",
     "illuminate/collections": "^8.0",
     "illuminate/contracts": "^8.0",
@@ -41,10 +43,10 @@
     "psr/http-message": "^1.0",
     "psr/http-server-handler": "^1.0",
     "spatie/ignition": "^1.12",
-    "vlucas/phpdotenv": "^5.3"
+    "vlucas/phpdotenv": "^5.6"
   },
   "require-dev": {
-    "phpunit/phpunit": "^9.0",
+    "phpunit/phpunit": "^11.0",
     "symfony/var-dumper": "^6.4"
   },
   "autoload": {
@@ -52,7 +54,7 @@
       "helpers.php"
     ],
     "psr-4": {
-      "Horizom\\Core\\": ""
+      "Horizom\\Core\\": "src/"
     }
   },
   "config": {

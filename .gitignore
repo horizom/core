@@ -2,9 +2,11 @@
 
 /.vscode/*
 /vendor
-/tests
 /monorepo-builder.php
 
 .env
 .env.backup
 npm-debug.log
+
+composer.phar
+composer.lock
