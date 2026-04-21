@@ -40,7 +40,7 @@ class Response extends Facade
      *
      * @return string
      */
-    public static function getFacadeAccessor()
+    public static function getFacadeAccessor(): string
     {
         return \Horizom\Http\Response::class;
     }

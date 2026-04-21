@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core;
 
 use DI\Container as DIContainer;
@@ -24,21 +26,19 @@ use Psr\Container\ContainerInterface;
 class Container extends DIContainer implements ContainerInterface
 {
     /**
-     * @var array<string, bool>
+     * @var array<class-string, bool>
      */
-    private $loadedProviders = [];
+    private array $loadedProviders = [];
 
     /**
      * @var array<int, ServiceProvider>
      */
-    private $serviceProviders = [];
+    private array $serviceProviders = [];
 
     /**
      * Register a service provider with the application.
-     *
-     * @param ServiceProvider $provider
      */
-    public function register($provider, $force = false)
+    public function register(ServiceProvider $provider, bool $force = false): ServiceProvider
     {
         if (($registered = $this->getProvider($provider)) && !$force) {
             return $registered;
@@ -67,10 +67,9 @@ class Container extends DIContainer implements ContainerInterface
     /**
      * Get the registered service provider instance if it exists.
      *
-     * @param  ServiceProvider|string  $provider
-     * @return ServiceProvider|null
+     * @param  ServiceProvider|class-string  $provider
      */
-    public function getProvider($provider)
+    public function getProvider(ServiceProvider|string $provider): ?ServiceProvider
     {
         return array_values($this->getProviders($provider))[0] ?? null;
     }
@@ -78,10 +77,10 @@ class Container extends DIContainer implements ContainerInterface
     /**
      * Get the registered service provider instances if any exist.
      *
-     * @param  ServiceProvider|string  $provider
-     * @return array
+     * @param  ServiceProvider|class-string  $provider
+     * @return array<int, ServiceProvider>
      */
-    public function getProviders($provider)
+    public function getProviders(ServiceProvider|string $provider): array
     {
         $name = is_string($provider) ? $provider : get_class($provider);
 
@@ -89,12 +88,17 @@ class Container extends DIContainer implements ContainerInterface
     }
 
     /**
-     * Mark the given provider as registered.
-     *
-     * @param  ServiceProvider  $provider
-     * @return void
+     * Check whether a provider has been loaded.
      */
-    protected function markAsRegistered($provider)
+    public function isLoaded(string $provider): bool
+    {
+        return isset($this->loadedProviders[$provider]);
+    }
+
+    /**
+     * Mark the given provider as registered.
+     */
+    protected function markAsRegistered(ServiceProvider $provider): void
     {
         $this->serviceProviders[] = $provider;
         $this->loadedProviders[get_class($provider)] = true;

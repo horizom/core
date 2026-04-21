@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core;
 
 use Illuminate\Container\Container;
@@ -106,7 +108,7 @@ class View implements FactoryContract
      * @param string $name
      * @param callable $callback
      */
-    public function if (string $name, callable $callback)
+    public function if(string $name, callable $callback)
     {
         $this->compiler->if($name, $callback);
     }

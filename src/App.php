@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core;
 
 use DI\ContainerBuilder;
@@ -14,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
 class App
 {
     /**
-     * @var self
+     * @var self|null
      */
     private static $instance;
 
@@ -26,7 +28,7 @@ class App
     /**
      * @var string
      */
-    protected $defaultNamespace;
+    protected $defaultNamespace = '';
 
     /**
      * @var string
@@ -95,7 +97,7 @@ class App
      *
      * @return string
      */
-    public function version()
+    public function version(): string
     {
         return self::VERSION;
     }
@@ -147,7 +149,7 @@ class App
      * @param callable $concrete
      * @return mixed
      */
-    public function singleton(string $abstract, $concrete = null)
+    public function singleton(string $abstract, $concrete = null): void
     {
         $this->set($abstract, $concrete ?? $abstract);
     }
@@ -159,9 +161,9 @@ class App
      * @param mixed $concrete
      * @return mixed
      */
-    public function instance(string $abstract, $instance)
+    public function instance(string $abstract, $instance): void
     {
-        return $this->set($abstract, $instance);
+        $this->set($abstract, $instance);
     }
 
     /**
@@ -170,7 +172,7 @@ class App
      * @param string $abstract
      * @param mixed $concrete
      */
-    public function bind(string $abstract, $concrete)
+    public function bind(string $abstract, $concrete): void
     {
         $this->set($abstract, $concrete);
     }
@@ -193,10 +195,10 @@ class App
      * @param callable $callback
      * @return mixed
      */
-    public function extend(string $id, callable $callback)
+    public function extend(string $id, callable $callback): void
     {
         $old = $this->container->get($id);
-        return $this->container->set($id, fn() => $callback($old));
+        $this->container->set($id, fn() => $callback($old));
     }
 
     /**
@@ -205,9 +207,9 @@ class App
      * @param string $name
      * @param mixed $value
      */
-    public function set($name, $value)
+    public function set(string $name, mixed $value): void
     {
-        return $this->container->set($name, $value);
+        $this->container->set($name, $value);
     }
 
     /**
@@ -225,10 +227,9 @@ class App
     /**
      * Resolve a service provider instance from the class name.
      *
-     * @param string $provider
-     * @return \Horizom\Core\ServiceProvider
+     * @param class-string<ServiceProvider> $provider
      */
-    public function resolveProvider($provider)
+    public function resolveProvider(string $provider): ServiceProvider
     {
         return new $provider($this);
     }
@@ -236,9 +237,9 @@ class App
     /**
      * Register a service provider.
      *
-     * @param \Horizom\Core\ServiceProvider|string $provider
+     * @param ServiceProvider|class-string<ServiceProvider> $provider
      */
-    public function register($provider)
+    public function register(ServiceProvider|string $provider): ServiceProvider
     {
         if (is_string($provider)) {
             $provider = $this->resolveProvider($provider);
@@ -252,7 +253,7 @@ class App
      *
      * @see \Horizom\Core\ServiceProvider::boot()
      */
-    public function boot()
+    public function boot(): void
     {
         $this->container->boot();
     }
@@ -260,16 +261,17 @@ class App
     /**
      * Set or Get Configuration Values into the application.
      *
-     * @param array|null $items
-     * @return array|null
+     * @param array<string, mixed>|null $items
+     * @return array<string, mixed>|null
      */
-    public function config(array $items = null)
+    public function config(?array $items = null): ?array
     {
         if (is_null($items)) {
             return $this->get(Config::class)->all();
         }
 
         $this->updateConfig($items);
+        return null;
     }
 
     /**
@@ -284,7 +286,7 @@ class App
         return $this;
     }
 
-    public function updateConfig(array $items)
+    public function updateConfig(array $items): void
     {
         $config = $this->get(Config::class);
         $items = array_merge($config->all(), $items);
@@ -293,11 +295,19 @@ class App
     }
 
     /**
+     * Router getter
+     */
+    public function getRouter(): Router
+    {
+        return $this->router;
+    }
+
+    /**
      * Run The Application
      *
      * @param \Horizom\Http\Request $request
      */
-    public function run(Request $request)
+    public function run(Request $request): void
     {
         $this->instance(Request::class, $request);
         $this->instance(Router::class, $this->router);
@@ -318,7 +328,7 @@ class App
      *
      * @return void
      */
-    protected function registerServiceProvidersAndBoot()
+    protected function registerServiceProvidersAndBoot(): void
     {
         foreach (config('providers') as $provider) {
             $this->register($provider);
@@ -333,7 +343,7 @@ class App
      * @param \Psr\Http\Message\ResponseInterface $response
      * @return void
      */
-    public function emit(ResponseInterface $response)
+    public function emit(ResponseInterface $response): void
     {
         $http_line = sprintf(
             'HTTP/%s %s %s',

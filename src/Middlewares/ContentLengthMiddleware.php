@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core\Middlewares;
 
 use Psr\Http\Message\ResponseInterface;

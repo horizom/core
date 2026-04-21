@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Horizom\Core\Facades\Response;
 use Horizom\Core\Facades\View;
 use Illuminate\Support\Facades\Hash;

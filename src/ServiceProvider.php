@@ -9,34 +9,28 @@ abstract class ServiceProvider
     /**
      * @var App
      */
-    protected $app;
+    protected App $app;
 
     /**
      * Create a new service provider instance.
-     *
-     * @param  App  $app
      */
-    public function __construct($app)
+    public function __construct(App $app)
     {
         $this->app = $app;
     }
 
     /**
      * Register any application services.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
         // no-op
     }
 
     /**
      * Binds and sets up implementations at boot time.
-     *
-     * @return void The method will not return any value.
      */
-    public function boot()
+    public function boot(): void
     {
         // no-op
     }
@@ -44,9 +38,9 @@ abstract class ServiceProvider
     /**
      * Get the services provided by the provider.
      *
-     * @return array
+     * @return list<string>
      */
-    public function provides()
+    public function provides(): array
     {
         return [];
     }
@@ -54,14 +48,17 @@ abstract class ServiceProvider
     /**
      * Get the events that trigger this service provider to register.
      *
-     * @return array
+     * @return list<string>
      */
-    public function when()
+    public function when(): array
     {
         return [];
     }
 
-    public static function defaultProviders()
+    /**
+     * @return \Illuminate\Support\Collection<int, class-string<ServiceProvider>>
+     */
+    public static function defaultProviders(): \Illuminate\Support\Collection
     {
         return collect([
             \Horizom\Core\Providers\CoreServiceProvider::class,

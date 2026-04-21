@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core\Middlewares;
 
 use Psr\Http\Message\ResponseInterface;
@@ -152,7 +154,7 @@ class BodyParsingMiddleware implements MiddlewareInterface
         }
 
         if (isset($this->bodyParsers[$mediaType])) {
-            $body = (string)$request->getBody();
+            $body = (string) $request->getBody();
             $parsed = $this->bodyParsers[$mediaType]($body);
 
             if (!is_null($parsed) && !is_object($parsed) && !is_array($parsed)) {

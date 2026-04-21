@@ -51,7 +51,7 @@
   },
   "autoload": {
     "files": [
-      "helpers.php"
+      "src/helpers.php"
     ],
     "psr-4": {
       "Horizom\\Core\\": "src/"

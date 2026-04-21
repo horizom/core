@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core\Providers;
 
 use Horizom\Core\ServiceProvider;

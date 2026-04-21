@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core\Middlewares;
 
 use Horizom\Core\Contracts\ExceptionHandler;
@@ -11,10 +13,7 @@ use Throwable;
 
 class ExceptionHandlingMiddleware implements MiddlewareInterface
 {
-    /**
-     * @var ExceptionHandler
-     */
-    private $exceptionHandler;
+    private ExceptionHandler $exceptionHandler;
 
     public function __construct(ExceptionHandler $exceptionHandler)
     {
@@ -26,7 +25,6 @@ class ExceptionHandlingMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (Throwable $e) {
-            $request = app()->get(\Horizom\Http\Request::class);
             return $this->exceptionHandler->handle($e, $request, $handler);
         }
     }

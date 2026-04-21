@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core\Facades;
 
 /**
@@ -26,7 +28,7 @@ class View extends Facade
      *
      * @return string
      */
-    public static function getFacadeAccessor()
+    public static function getFacadeAccessor(): string
     {
         return \Horizom\Core\View::class;
     }

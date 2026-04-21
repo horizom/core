@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Horizom\Core\Providers;
 
 use Horizom\Core\ServiceProvider;
@@ -12,8 +14,8 @@ class ViewServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(\Horizom\Core\View::class, function () {
-            $paths = $this->getPaths();
-            return new \Horizom\Core\View($paths->viewPaths, $paths->cachePath);
+            ['viewPaths' => $viewPaths, 'cachePath' => $cachePath] = $this->getPaths();
+            return new \Horizom\Core\View($viewPaths, $cachePath);
         });
     }
 
@@ -22,16 +24,19 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $paths = $this->getPaths();
+        ['cachePath' => $cachePath] = $this->getPaths();
 
-        if (!is_dir($paths->cachePath)) {
-            mkdir($paths->cachePath, 0755, true);
+        if (!is_dir($cachePath)) {
+            mkdir($cachePath, 0755, true);
         }
     }
 
-    public function getPaths()
+    /**
+     * @return array{viewPaths: list<string>, cachePath: string}
+     */
+    public function getPaths(): array
     {
-        return (object) [
+        return [
             'viewPaths' => [base_path('resources/views')],
             'cachePath' => base_path('storage/cache/views'),
         ];
